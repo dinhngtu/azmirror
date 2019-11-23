@@ -17,7 +17,7 @@ class Main:
 
     def make_target(self, base, fn):
         return urllib.parse.urlunparse(
-            (base[0], base[1], base[2] + fn, '', base[4], ''))
+            (base[0], base[1], base[2] + '/' + fn, '', base[4], ''))
 
     def run(self, stdscr):
         if not stdscr:
@@ -69,7 +69,8 @@ class Main:
                     browser.pop()
                     break
                 elif cmd == ord('c'):
-                    fn = time.strftime('/%Y-%m-%d_%H.%M.%S.bin')
+                    fn = time.strftime('%Y-%m-%d_%H.%M.%S.bin')
+                    status.render(f'Uploading {fn}, be patient...')
                     target = self.make_target(self.upload_url, fn)
                     download_target = self.make_target(self.download_url, fn)
                     files_upload = browser.get_selected()
@@ -77,4 +78,5 @@ class Main:
                         key, uploader = ku
                         for f in files_upload:
                             uploader.write(f, f.name)
+                    status.render()
                     results.append((download_target, key))

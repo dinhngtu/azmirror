@@ -14,9 +14,9 @@ class Status:
         self.win = curses.newwin(
             Status.STATUS_HEIGHT, self.w, self.y0, self.x0)
 
-    def render(self):
+    def render(self, text='Ready.'):
         self.win.hline(0, 0, curses.ACS_HLINE, self.w)
-        self.win.addnstr(1, 0, 'Ready.', self.w)
+        self.win.addnstr(1, 0, text, self.w)
 
     def refresh(self):
         self.win.refresh()
