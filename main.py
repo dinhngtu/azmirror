@@ -5,15 +5,17 @@ import time
 import urllib
 
 from browser import Browser
+from help import Help
 from status import Status
 from upload import create_uploader
 
 
 class Main:
-    def __init__(self, root, upload_path, download_path):
+    def __init__(self, root, upload_path, download_path, encrypt):
         self.root = pathlib.Path(root)
         self.upload_url = urllib.parse.urlparse(upload_path)
         self.download_url = urllib.parse.urlparse(download_path)
+        self.encrypt = encrypt
 
     def make_target(self, base, fn):
         return urllib.parse.urlunparse(
@@ -28,6 +30,7 @@ class Main:
         curses.curs_set(False)
 
         stdscr.keypad(True)
+        stdscr.clear()
         stdscr.refresh()
 
         h, w = stdscr.getmaxyx()
@@ -69,14 +72,33 @@ class Main:
                     browser.pop()
                     break
                 elif cmd == ord('c'):
-                    fn = time.strftime('%Y-%m-%d_%H.%M.%S.bin')
-                    status.render(f'Uploading {fn}, be patient...')
-                    target = self.make_target(self.upload_url, fn)
-                    download_target = self.make_target(self.download_url, fn)
                     files_upload = browser.get_selected()
-                    with create_uploader(target) as ku:
-                        key, uploader = ku
-                        for f in files_upload:
-                            uploader.write(f, f.name)
-                    status.render()
-                    results.append((download_target, key))
+                    if len(files_upload) > 0:
+                        if self.encrypt:
+                            fn = time.strftime('%Y-%m-%d_%H.%M.%S.bin')
+                        else:
+                            fn = time.strftime('%Y-%m-%d_%H.%M.%S.zip')
+
+                        status.render(f'Uploading {fn}, be patient...')
+                        status.refresh()
+
+                        target = self.make_target(self.upload_url, fn)
+                        download_target = self.make_target(self.download_url, fn)
+                        with create_uploader(target, encrypt=self.encrypt) as ku:
+                            uploader, key = ku
+                            for f in files_upload:
+                                uploader.write(f, f.name)
+
+                        results.append((download_target, key))
+
+                        status.render(f'Done uploading {fn}.')
+                        status.refresh()
+                    else:
+                        status.render('Choose something to upload first!')
+                        status.refresh()
+                elif cmd == ord('h'):
+                    help = Help(0, 0, h - 1, w - 1)
+                    help.render()
+                    help.refresh()
+                    stdscr.getch()
+                    break

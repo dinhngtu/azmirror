@@ -10,11 +10,12 @@ if __name__ == "__main__":
     main = Main(
         config['DEFAULT']['root'],
         config['DEFAULT']['upload_path'],
-        config['DEFAULT']['download_path'])
+        config['DEFAULT']['download_path'],
+        config.getboolean('DEFAULT', 'encrypt', fallback=True))
     results = curses.wrapper(main.run)
 
     for target, key in results:
-        print(target)
-        print(key)
+        print(f'URL: {target}')
+        print(f'Key: {key}')
         print()
     _review = input('give a review:')

@@ -4,16 +4,25 @@ import typing
 
 
 class Browser:
-    NAME_MAX = 256
     PAIR_FILE = 0
     PAIR_DIR = 1
     PAIR_FILE_SELECTED = 2
+    PAIR_EMPTY = 3
     SCROLL_OFFSET = 1
 
     def __init__(self, path: pathlib.Path, y0, x0, y1, x1):
-        curses.init_pair(self.PAIR_DIR, curses.COLOR_CYAN, curses.COLOR_BLACK)
         curses.init_pair(
-            self.PAIR_FILE_SELECTED, curses.COLOR_YELLOW, curses.COLOR_BLACK)
+            Browser.PAIR_DIR,
+            curses.COLOR_CYAN,
+            curses.COLOR_BLACK)
+        curses.init_pair(
+            Browser.PAIR_FILE_SELECTED,
+            curses.COLOR_YELLOW,
+            curses.COLOR_BLACK)
+        curses.init_pair(
+            Browser.PAIR_EMPTY,
+            curses.COLOR_RED,
+            curses.COLOR_WHITE)
         self.pathstack = [path]
         self.y0, self.x0 = y0, x0
         self.y1, self.x1 = y1, x1
@@ -81,29 +90,37 @@ class Browser:
 
     def draw_path(self):
         num = len(self.dirs) + len(self.files)
-        self.pad = curses.newpad(num, Browser.NAME_MAX)
+        self.pad = curses.newpad(max(num, self.h), self.w)
         pos = 0
         for d in self.dirs:
-            self.pad.addnstr(pos, 0, d.name, Browser.NAME_MAX)
+            self.pad.addnstr(pos, 0, d.name, self.w)
             self.pad.chgat(pos, 0, Browser.item_attr(d, False, False))
             pos += 1
         for f in self.files:
-            self.pad.addnstr(pos, 0, f.name, Browser.NAME_MAX)
+            self.pad.addnstr(pos, 0, f.name, self.w)
             self.pad.chgat(pos, 0, Browser.item_attr(f, False, False))
             pos += 1
 
     def refresh(self):
-        self.draw_item(self.cur_item(), self.cur, cursor=True)
+        n = len(self.dirs) + len(self.files)
+        if self.cur < n:
+            self.draw_item(self.cur_item(), self.cur, cursor=True)
+        else:
+            self.pad.addnstr(
+                0, 0, 'Empty', self.w, curses.color_pair(Browser.PAIR_EMPTY))
         self.pad.refresh(self.pad_top, 0, self.y0, self.x0, self.y1, self.x1)
 
     def do_select(self):
-        if self.cur_item().is_file():
+        n = len(self.dirs) + len(self.files)
+        if self.cur < n and self.cur_item().is_file():
             self.selected[self.idx_file()] = not self.selected[self.idx_file()]
 
     def do_down(self, amount=1):
+        n = len(self.dirs) + len(self.files)
+        if not n:
+            return
         for _i in range(amount):
             pad_bottom = self.pad_top + self.h - 1
-            n = len(self.dirs) + len(self.files)
             self.draw_item(self.cur_item(), self.cur)
             self.cur += 1
             if self.cur >= n:
@@ -112,6 +129,9 @@ class Browser:
                 self.pad_top += 1
 
     def do_up(self, amount=1):
+        n = len(self.dirs) + len(self.files)
+        if not n:
+            return
         for _i in range(amount):
             self.draw_item(self.cur_item(), self.cur)
             self.cur -= 1
