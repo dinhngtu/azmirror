@@ -12,17 +12,13 @@ class Browser:
 
     def __init__(self, path: pathlib.Path, y0, x0, y1, x1):
         curses.init_pair(
-            Browser.PAIR_DIR,
-            curses.COLOR_CYAN,
-            curses.COLOR_BLACK)
+            Browser.PAIR_DIR, curses.COLOR_CYAN, curses.COLOR_BLACK)
         curses.init_pair(
             Browser.PAIR_FILE_SELECTED,
             curses.COLOR_YELLOW,
             curses.COLOR_BLACK)
         curses.init_pair(
-            Browser.PAIR_EMPTY,
-            curses.COLOR_RED,
-            curses.COLOR_WHITE)
+            Browser.PAIR_EMPTY, curses.COLOR_RED, curses.COLOR_WHITE)
         self.pathstack = [path]
         self.y0, self.x0 = y0, x0
         self.y1, self.x1 = y1, x1
@@ -31,47 +27,27 @@ class Browser:
 
     def render(self):
         pwd = self.pathstack[-1]
-        self.dirs, self.files = Browser.list_dir(pwd)
-        self.selected = [False] * len(self.files)
+        self.items = sorted(
+            list(pwd.iterdir()),
+            key=lambda item: item.stat().st_mtime,
+            reverse=True)
+        self.selected = [False] * len(self.items)
 
         self.cur = 0
         self.pad_top = self.y0
         self.draw_path()
 
-    def idx_dir(self):
-        return self.cur
-
-    def idx_file(self):
-        return self.cur - len(self.dirs)
-
     def cur_selected(self):
-        if self.cur < len(self.dirs):
-            return False
-        elif self.cur - len(self.dirs) < len(self.files):
-            return self.selected[self.cur - len(self.dirs)]
+        if self.cur < len(self.items):
+            return self.selected[self.cur]
         else:
             raise ValueError
 
     def cur_item(self):
-        if self.cur < len(self.dirs):
-            return self.dirs[self.cur]
-        elif self.cur - len(self.dirs) < len(self.files):
-            return self.files[self.cur - len(self.dirs)]
+        if self.cur < len(self.items):
+            return self.items[self.cur]
         else:
             raise ValueError
-
-    @staticmethod
-    def list_dir(path: pathlib.Path):
-        dirs = []
-        files = []
-
-        for item in path.iterdir():
-            if item.is_dir():
-                dirs.append(item)
-            else:
-                files.append(item)
-
-        return dirs, files
 
     @staticmethod
     def item_attr(item, cursor, selected):
@@ -86,24 +62,18 @@ class Browser:
 
     def draw_item(self, item, pos, cursor=False):
         self.pad.chgat(
-            pos, 0, self.item_attr(item, cursor, self.cur_selected()))
+            pos, 0, self.item_attr(item, cursor, self.selected[self.cur]))
 
     def draw_path(self):
-        num = len(self.dirs) + len(self.files)
-        self.pad = curses.newpad(max(num, self.h), self.w)
+        self.pad = curses.newpad(max(len(self.items), self.h), self.w)
         pos = 0
-        for d in self.dirs:
-            self.pad.addnstr(pos, 0, d.name, self.w)
-            self.pad.chgat(pos, 0, Browser.item_attr(d, False, False))
-            pos += 1
-        for f in self.files:
-            self.pad.addnstr(pos, 0, f.name, self.w)
-            self.pad.chgat(pos, 0, Browser.item_attr(f, False, False))
+        for item in self.items:
+            self.pad.addnstr(pos, 0, item.name, self.w)
+            self.pad.chgat(pos, 0, Browser.item_attr(item, False, False))
             pos += 1
 
     def refresh(self):
-        n = len(self.dirs) + len(self.files)
-        if self.cur < n:
+        if self.cur < len(self.items):
             self.draw_item(self.cur_item(), self.cur, cursor=True)
         else:
             self.pad.addnstr(
@@ -111,26 +81,24 @@ class Browser:
         self.pad.refresh(self.pad_top, 0, self.y0, self.x0, self.y1, self.x1)
 
     def do_select(self):
-        n = len(self.dirs) + len(self.files)
-        if self.cur < n and self.cur_item().is_file():
-            self.selected[self.idx_file()] = not self.selected[self.idx_file()]
+        if self.cur < len(self.items) and self.cur_item().is_file():
+            self.selected[self.cur] = not self.selected[self.cur]
 
     def do_down(self, amount=1):
-        n = len(self.dirs) + len(self.files)
-        if not n:
+        if not len(self.items):
             return
         for _i in range(amount):
             pad_bottom = self.pad_top + self.h - 1
             self.draw_item(self.cur_item(), self.cur)
             self.cur += 1
-            if self.cur >= n:
-                self.cur = n - 1
-            if self.cur > pad_bottom - Browser.SCROLL_OFFSET and self.cur < n - 1:
+            if self.cur >= len(self.items):
+                self.cur = len(self.items) - 1
+            if self.cur > pad_bottom - Browser.SCROLL_OFFSET and self.cur < len(
+                    self.items) - 1:
                 self.pad_top += 1
 
     def do_up(self, amount=1):
-        n = len(self.dirs) + len(self.files)
-        if not n:
+        if not len(self.items):
             return
         for _i in range(amount):
             self.draw_item(self.cur_item(), self.cur)
@@ -141,7 +109,7 @@ class Browser:
                 self.pad_top -= 1
 
     def push(self):
-        if self.cur_item().is_dir():
+        if self.cur < len(self.items) and self.cur_item().is_dir():
             self.pathstack.append(self.cur_item())
 
     def pop(self):
@@ -150,7 +118,7 @@ class Browser:
 
     def get_selected(self) -> typing.List[pathlib.Path]:
         ret = []
-        for s, f in zip(self.selected, self.files):
+        for s, f in zip(self.selected, self.items):
             if s:
                 ret.append(f)
         return ret
