@@ -1,4 +1,45 @@
+# Copyright (C) 2019  Dinh Ngoc Tu
+#
+# This file is part of azmirror.
+#
+# azmirror is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# azmirror is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with azmirror.  If not, see <https://www.gnu.org/licenses/>.
+
 import curses
+
+helptext = """azmirror
+
+how to use azmirror
+press up/down/pgup/pgdown to move cursor
+press space to select file
+press c to upload
+press q to quit
+
+Copyright (C) 2019  Dinh Ngoc Tu
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
 
 
 class Help:
@@ -9,16 +50,15 @@ class Help:
         self.w = x1 - x0 + 1
         self.win = curses.newwin(self.h, self.w, self.y0, self.x0)
 
-    def println(self, y, str):
-        self.win.addnstr(y, 1, str, self.w - 2)  # border
+    def println(self, str=''):
+        self.win.addnstr(self.row, 1, str, self.w - 2)  # border
+        self.row = self.row + 1
 
     def render(self):
         self.win.border()
-        self.println(1, 'how to use azmirror')
-        self.println(2, 'press up/down/pgup/pgdown to move cursor')
-        self.println(3, 'press space to select file')
-        self.println(4, 'press c to upload')
-        self.println(5, 'press q to quit')
+        self.row = 1
+        for line in helptext.splitlines():
+            self.println(line)
 
     def refresh(self):
         self.win.refresh()
