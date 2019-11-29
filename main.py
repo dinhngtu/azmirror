@@ -99,17 +99,24 @@ class Main:
                         status.render(f'Uploading {fn}, be patient...')
                         status.refresh()
 
-                        target = self.make_target(self.upload_url, fn)
-                        download_target = self.make_target(self.download_url, fn)
-                        with create_uploader(target, encrypt=self.encrypt) as ku:
-                            uploader, key = ku
-                            for f in files_upload:
-                                uploader.write(f, f.name)
+                        try:
+                            target = self.make_target(self.upload_url, fn)
+                            download_target = self.make_target(self.download_url, fn)
+                            with create_uploader(target, encrypt=self.encrypt) as ku:
+                                uploader, key = ku
+                                for f in files_upload:
+                                    uploader.write(f, f.name)
 
-                        results.append((download_target, key))
+                            results.append((download_target, key))
 
-                        status.render(f'Done uploading {fn}.')
-                        status.refresh()
+                            status.render(f'Done uploading {fn}.')
+                            status.refresh()
+
+                            browser.render()
+                            browser.refresh()
+                        except:
+                            status.render('Oops.. an error happened.')
+                            status.refresh()
                     else:
                         status.render('Choose something to upload first!')
                         status.refresh()
