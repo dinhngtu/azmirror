@@ -23,7 +23,9 @@ how to use azmirror
 press up/down/pgup/pgdown to move cursor
 press space to select file
 press c to upload
-press h to toggle encryption
+press e to toggle encryption
+    encrypted files can only be decrypted with a special tool,
+    the decryption key is provided at program exit
 press q to quit
 
 Copyright (C) 2019  Dinh Ngoc Tu
