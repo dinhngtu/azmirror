@@ -88,6 +88,12 @@ class Main:
                 elif cmd == curses.KEY_BACKSPACE:
                     browser.pop()
                     break
+                elif cmd == ord('e'):
+                    self.encrypt = not self.encrypt
+                    status.render(
+                        f'Encryption {"enabled" if self.encrypt else "disabled"}'
+                    )
+                    status.refresh()
                 elif cmd == ord('c'):
                     files_upload = browser.get_selected()
                     if len(files_upload) > 0:
@@ -101,8 +107,10 @@ class Main:
 
                         try:
                             target = self.make_target(self.upload_url, fn)
-                            download_target = self.make_target(self.download_url, fn)
-                            with create_uploader(target, encrypt=self.encrypt) as ku:
+                            download_target = self.make_target(
+                                self.download_url, fn)
+                            with create_uploader(target,
+                                                 encrypt=self.encrypt) as ku:
                                 uploader, key = ku
                                 for f in files_upload:
                                     uploader.write(f, f.name)

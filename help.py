@@ -23,6 +23,7 @@ how to use azmirror
 press up/down/pgup/pgdown to move cursor
 press space to select file
 press c to upload
+press h to toggle encryption
 press q to quit
 
 Copyright (C) 2019  Dinh Ngoc Tu
