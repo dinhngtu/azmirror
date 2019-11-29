@@ -21,7 +21,7 @@ import zipfile
 
 
 @contextlib.contextmanager
-def create_uploader(target_url, encrypt=True):
+def create_uploader(target_url, encrypt):
     if encrypt:
         rwiz = subprocess.Popen(
             ['rwiz', 'e'],
