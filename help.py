@@ -19,9 +19,10 @@ import curses
 
 helptext = """azmirror
 
-how to use azmirror
 press up/down/pgup/pgdown to move cursor
 press space to select file
+press enter to enter folder, backspace to get out
+press r to refresh
 press c to upload
 press e to toggle encryption
     encrypted files can only be decrypted with a special tool,

@@ -88,6 +88,8 @@ class Main:
                 elif cmd == curses.KEY_BACKSPACE:
                     browser.pop()
                     break
+                elif cmd == ord('r'):
+                    break
                 elif cmd == ord('e'):
                     self.encrypt = not self.encrypt
                     status.render(
