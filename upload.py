@@ -29,7 +29,15 @@ def create_uploader(target_url, encrypt):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE)
     azcopy = subprocess.Popen(
-        ['azcopy', 'cp', target_url],
+        [
+            'azcopy',
+            'copy',
+            '--log-level',
+            'NONE',
+            '--content-type',
+            'application/octet-stream',
+            target_url
+        ],
         stdin=rwiz.stdout if encrypt else subprocess.PIPE,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL)
