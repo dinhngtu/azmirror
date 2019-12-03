@@ -54,15 +54,15 @@ class Help:
         self.w = x1 - x0 + 1
         self.win = curses.newwin(self.h, self.w, self.y0, self.x0)
 
-    def println(self, str=''):
-        self.win.addnstr(self.row, 1, str, self.w - 2)  # border
-        self.row = self.row + 1
+    def println(self, row, str=''):
+        self.win.addnstr(row, 1, str, self.w - 2)  # border
 
     def render(self):
         self.win.border()
-        self.row = 1
-        for line in helptext.splitlines():
-            self.println(line)
+        for i, line in enumerate(helptext.splitlines()):
+            if i > self.h - 3:
+                break
+            self.println(i + 1, line)
 
     def refresh(self):
         self.win.refresh()
