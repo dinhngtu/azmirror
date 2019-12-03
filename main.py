@@ -60,6 +60,7 @@ class Main:
 
             if stale:
                 browser.get_data()
+                stale = False
             browser.render(0, 0, h - 1 - Status.STATUS_HEIGHT, w - 1)
             browser.refresh()
 
