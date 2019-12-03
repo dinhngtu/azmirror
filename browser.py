@@ -27,7 +27,7 @@ class Browser:
     PAIR_EMPTY = 3
     SCROLL_OFFSET = 1
 
-    def __init__(self, path: pathlib.Path, y0, x0, y1, x1):
+    def __init__(self, path: pathlib.Path):
         curses.init_pair(
             Browser.PAIR_DIR, curses.COLOR_CYAN, curses.COLOR_BLACK)
         curses.init_pair(
@@ -37,22 +37,24 @@ class Browser:
         curses.init_pair(
             Browser.PAIR_EMPTY, curses.COLOR_RED, curses.COLOR_WHITE)
         self.pathstack = [path]
-        self.y0, self.x0 = y0, x0
-        self.y1, self.x1 = y1, x1
-        self.h = y1 - y0 + 1
-        self.w = x1 - x0 + 1
 
-    def render(self):
+    def get_data(self):
         pwd = self.pathstack[-1]
         self.items = sorted(
             list(pwd.iterdir()),
             key=lambda item: item.stat().st_mtime,
             reverse=True)
         self.selected = [False] * len(self.items)
-
         self.cur = 0
+
+    def render(self, y0, x0, y1, x1):
+        self.y0, self.x0 = y0, x0
+        self.y1, self.x1 = y1, x1
+        self.h = y1 - y0 + 1
+        self.w = x1 - x0 + 1
+
         self.pad_top = self.y0
-        self.draw_path()
+        self.draw_all()
 
     def cur_selected(self):
         if self.cur < len(self.items):
@@ -81,12 +83,12 @@ class Browser:
         self.pad.chgat(
             pos, 0, self.item_attr(item, cursor, self.selected[self.cur]))
 
-    def draw_path(self):
+    def draw_all(self):
         self.pad = curses.newpad(max(len(self.items), self.h), self.w)
         pos = 0
-        for item in self.items:
+        for i, item in enumerate(self.items):
             self.pad.addnstr(pos, 0, item.name, self.w)
-            self.pad.chgat(pos, 0, Browser.item_attr(item, False, False))
+            self.pad.chgat(pos, 0, Browser.item_attr(item, False, self.selected[i]))
             pos += 1
 
     def refresh(self):

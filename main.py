@@ -50,15 +50,16 @@ class Main:
         stdscr.clear()
         stdscr.refresh()
 
-        h, w = stdscr.getmaxyx()
-
-        browser = Browser(self.root, 0, 0, h - 1 - Status.STATUS_HEIGHT, w - 1)
-        status = Status(h - Status.STATUS_HEIGHT, 0, h - 1, w - 1)
+        browser = Browser(self.root)
         results = []
         while True:
-            browser.render()
+            h, w = curses.LINES, curses.COLS
+
+            browser.get_data()
+            browser.render(0, 0, h - 1 - Status.STATUS_HEIGHT, w - 1)
             browser.refresh()
 
+            status = Status(h - Status.STATUS_HEIGHT, 0, h - 1, w - 1)
             status.render()
             status.refresh()
 
@@ -88,6 +89,18 @@ class Main:
                 elif cmd == curses.KEY_BACKSPACE:
                     browser.pop()
                     break
+                elif cmd == curses.KEY_RESIZE:
+                    # need to refresh stdscr for proper rendering
+                    stdscr.refresh()
+                    curses.update_lines_cols()
+                    h, w = curses.LINES, curses.COLS
+
+                    browser.render(0, 0, h - 1 - Status.STATUS_HEIGHT, w - 1)
+                    browser.refresh()
+
+                    status = Status(h - Status.STATUS_HEIGHT, 0, h - 1, w - 1)
+                    status.render(text=f'{h} {w}')
+                    status.refresh()
                 elif cmd == ord('r'):
                     break
                 elif cmd == ord('e'):
@@ -122,8 +135,11 @@ class Main:
                             status.render(f'Done uploading {fn}.')
                             status.refresh()
 
-                            browser.render()
+                            browser.render(0, 0, h - 1 - Status.STATUS_HEIGHT, w - 1)
                             browser.refresh()
+                        except InterruptedError:
+                            status.render('Upload stopped.')
+                            status.refresh()
                         except:
                             status.render('Oops.. an error happened.')
                             status.refresh()
