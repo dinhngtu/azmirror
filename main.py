@@ -150,5 +150,6 @@ class Main:
                     help = Help(0, 0, h - 1, w - 1)
                     help.render()
                     help.refresh()
-                    stdscr.getch()
+                    if stdscr.getch() == curses.KEY_RESIZE:
+                        curses.ungetch(curses.KEY_RESIZE)
                     break
