@@ -52,10 +52,14 @@ class Main:
 
         browser = Browser(self.root)
         results = []
+        stale = True
         while True:
+            stdscr.refresh()
+            curses.update_lines_cols()
             h, w = curses.LINES, curses.COLS
 
-            browser.get_data()
+            if stale:
+                browser.get_data()
             browser.render(0, 0, h - 1 - Status.STATUS_HEIGHT, w - 1)
             browser.refresh()
 
@@ -85,23 +89,16 @@ class Main:
                     browser.refresh()
                 elif cmd == ord('\n'):
                     browser.push()
+                    stale = True
                     break
                 elif cmd == curses.KEY_BACKSPACE:
                     browser.pop()
+                    stale = True
                     break
                 elif cmd == curses.KEY_RESIZE:
-                    # need to refresh stdscr for proper rendering
-                    stdscr.refresh()
-                    curses.update_lines_cols()
-                    h, w = curses.LINES, curses.COLS
-
-                    browser.render(0, 0, h - 1 - Status.STATUS_HEIGHT, w - 1)
-                    browser.refresh()
-
-                    status = Status(h - Status.STATUS_HEIGHT, 0, h - 1, w - 1)
-                    status.render(text=f'{h} {w}')
-                    status.refresh()
+                    break
                 elif cmd == ord('r'):
+                    stale = True
                     break
                 elif cmd == ord('e'):
                     self.encrypt = not self.encrypt
